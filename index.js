@@ -448,8 +448,8 @@ export default async function annotate(app_instance, templateId, serviceId, emai
         pressedKeys.length == 2
       ) {
         e.preventDefault();
-        console.log("hello");
         openImage();
+        tool.style.visibility = "hidden";
 
         return;
       }
