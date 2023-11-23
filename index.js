@@ -107,7 +107,7 @@ async function getRecipients(database) {
   return recipientsDiv;
 }
 
-async function sendEmail(storage, emailJsApiKey) {
+async function sendEmail(storage, templateId, serviceId) {
   const recipient = document.getElementById("recipient").value;
   const sub = document.getElementById("subject").value;
   const msg = document.getElementById("message").value;
@@ -130,8 +130,8 @@ async function sendEmail(storage, emailJsApiKey) {
     if (recipient.children.item(0).checked) {
       const email = recipient.children.item(1).innerHTML;
       return emailjs.send(
-        "service_h52wd48",
-        "template_t1ssfnw",
+        serviceId,
+        templateId,
         {
           to_email: email,
           subject: sub,
@@ -157,7 +157,7 @@ async function sendEmail(storage, emailJsApiKey) {
     });
 }
 
-export default async function annotate(app_instance, emailJsApiKey) {
+export default async function annotate(app_instance, templateId, serviceId) {
   const storage = getStorage(app_instance);
   const database = getDatabase(app_instance);
 
@@ -234,6 +234,10 @@ export default async function annotate(app_instance, emailJsApiKey) {
   addRecipientButton.style.width = "30%";
   addRecipientButton.onclick = async () => {
     const recipient = document.getElementById("recipient").value;
+    if (!recipient) {
+      alert("Please enter a valid email address");
+      return;
+    }
     let list = document.getElementById("recipientList");
 
     let listArr = Array.from(list.children);
@@ -292,7 +296,7 @@ export default async function annotate(app_instance, emailJsApiKey) {
   sendEmailButton.innerHTML = "Send Email";
   sendEmailButton.style.width = "30%";
   sendEmailButton.onclick = async () => {
-    sendEmail(storage, emailJsApiKey);
+    sendEmail(storage, templateId, serviceId);
   };
 
   const recipeintsDiv = await getRecipients(database);
