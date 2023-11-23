@@ -160,9 +160,7 @@ async function sendEmail(storage, emailJsApiKey) {
 export default async function annotate(app_instance, emailJsApiKey) {
   const storage = getStorage(app_instance);
   const database = getDatabase(app_instance);
-  // console.log(storage);
-  //@ts-ignore
-  // const dom = document.body;
+
   const root = document.getElementById("root");
 
   const preMain = document.getElementById("main");
@@ -173,10 +171,6 @@ export default async function annotate(app_instance, emailJsApiKey) {
 
   var tool = document.createElement("div");
 
-  // Set its inner HTML
-  // tool.innerHTML = "I'm a sticky block!";
-
-  // Set the CSS properties
   tool.style.position = "fixed";
   tool.style.top = "0px";
   tool.style.left = "0px";
@@ -185,8 +179,6 @@ export default async function annotate(app_instance, emailJsApiKey) {
   tool.style.backgroundColor = "#f9f9f9";
   tool.style.padding = "10px";
   tool.style.zIndex = "1000";
-
-  // document.body.appendChild(tool);
 
   const annotatorModal = document.createElement("div");
 
@@ -253,7 +245,6 @@ export default async function annotate(app_instance, emailJsApiKey) {
 
     const dbRef = ref(database);
 
-    // const snapshot = await get(child(dbRef, `emails`));
     addRecipientButton.innerHTML = "Adding";
     await set(child(dbRef, `emails`), [...listArr, recipient]);
 
@@ -305,7 +296,6 @@ export default async function annotate(app_instance, emailJsApiKey) {
   };
 
   const recipeintsDiv = await getRecipients(database);
-  // console.log(recipeintsDiv);
   emailDiv.appendChild(recipient);
   emailDiv.appendChild(addRecipientButton);
   emailDiv.appendChild(recipeintsDiv);
@@ -327,7 +317,6 @@ export default async function annotate(app_instance, emailJsApiKey) {
   closeEmailDivButton.onclick = () => {
     emailDiv.style.display = "none";
   };
-  // closeEmailDivButton.style.marginLeft:"10px"
 
   emailButtonDiv.appendChild(sendEmailButton);
   emailButtonDiv.appendChild(closeEmailDivButton);
