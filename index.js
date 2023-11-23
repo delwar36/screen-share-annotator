@@ -89,6 +89,7 @@ async function getRecipients(database) {
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
       checkbox.id = "recipient";
+      checkbox.style.cursor = "pointer";
       checkbox.onclick = (e) => {
         console.log(e.target.checked);
       };
@@ -107,7 +108,7 @@ async function getRecipients(database) {
   return recipientsDiv;
 }
 
-async function sendEmail(storage, templateId, serviceId,emailJsApiKey) {
+async function sendEmail(storage, templateId, serviceId, emailJsApiKey) {
   const recipient = document.getElementById("recipient").value;
   const sub = document.getElementById("subject").value;
   const msg = document.getElementById("message").value;
@@ -157,7 +158,7 @@ async function sendEmail(storage, templateId, serviceId,emailJsApiKey) {
     });
 }
 
-export default async function annotate(app_instance, templateId, serviceId,emailJsApiKey) {
+export default async function annotate(app_instance, templateId, serviceId, emailJsApiKey) {
   const storage = getStorage(app_instance);
   const database = getDatabase(app_instance);
 
@@ -174,10 +175,12 @@ export default async function annotate(app_instance, templateId, serviceId,email
   tool.style.position = "fixed";
   tool.style.top = "0px";
   tool.style.left = "0px";
-  tool.style.width = "100%";
+  tool.style.width = "50px";
+  tool.style.height = "50px";
   tool.style.zIndex = "1000";
-  tool.style.backgroundColor = "#f9f9f9";
-  tool.style.padding = "10px";
+  tool.style.borderRadius = "50px";
+  tool.style.backgroundColor = "green";
+  tool.style.margin = "10px";
   tool.style.zIndex = "1000";
 
   const annotatorModal = document.createElement("div");
@@ -232,6 +235,7 @@ export default async function annotate(app_instance, templateId, serviceId,email
   addRecipientButton.id = "addRecipient";
   addRecipientButton.innerHTML = "Add New Recipient";
   addRecipientButton.style.width = "30%";
+  addRecipientButton.style.cursor = "pointer";
   addRecipientButton.onclick = async () => {
     const recipient = document.getElementById("recipient").value;
     if (!recipient) {
@@ -258,6 +262,7 @@ export default async function annotate(app_instance, templateId, serviceId,email
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
     checkbox.id = "recipient";
+    checkbox.style.cursor = "pointer";
     checkbox.onclick = (e) => {
       console.log(e.target.checked);
     };
@@ -295,8 +300,9 @@ export default async function annotate(app_instance, templateId, serviceId,email
   sendEmailButton.id = "sendEmail";
   sendEmailButton.innerHTML = "Send Email";
   sendEmailButton.style.width = "30%";
+  sendEmailButton.style.cursor = "pointer";
   sendEmailButton.onclick = async () => {
-    sendEmail(storage, templateId, serviceId,emailJsApiKey);
+    sendEmail(storage, templateId, serviceId, emailJsApiKey);
   };
 
   const recipeintsDiv = await getRecipients(database);
@@ -318,6 +324,7 @@ export default async function annotate(app_instance, templateId, serviceId,email
   closeEmailDivButton.innerHTML = "Close";
   closeEmailDivButton.style.marginRight = "auto";
   closeEmailDivButton.style.width = "30%";
+  closeEmailDivButton.style.cursor = "pointer";
   closeEmailDivButton.onclick = () => {
     emailDiv.style.display = "none";
   };
@@ -341,6 +348,7 @@ export default async function annotate(app_instance, templateId, serviceId,email
 
   const img = document.createElement("img");
   img.id = "annotate_preview";
+  img.style.cursor = "pointer";
 
   img.onclick = (e) => {
     showMarkerArea(e.target);
@@ -348,7 +356,20 @@ export default async function annotate(app_instance, templateId, serviceId,email
 
   const openButton = document.createElement("button");
   openButton.id = "open";
-  openButton.innerHTML = "Take Screenshot";
+  openButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-camera" viewBox="0 0 16 16"><path d="M15.5 2h-2.2l-1.3-1.3c-.1-.1-.2-.1-.3 0l-1.3 1.3H5.8l-1.3-1.3c-.1-.1-.2-.1-.3 0L2.7 2H.5c-.3 0-.5.2-.5.5v12c0 .3.2.5.5.5h15c.3 0 .5-.2.5-.5v-12c0-.3-.2-.5-.5-.5zM8 11.8c-2.1 0-3.8-1.7-3.8-3.8s1.7-3.8 3.8-3.8 3.8 1.7 3.8 3.8-1.7 3.8-3.8 3.8zm0-6.5c-1.5 0-2.7 1.2-2.7 2.7s1.2 2.7 2.7 2.7 2.7-1.2 2.7-2.7-1.2-2.7-2.7-2.7z"/></svg>';
+  openButton.style.width = "50px";
+  openButton.style.height = "50px";
+  openButton.style.height = "50px";
+  openButton.style.borderRadius = "50px";
+  // Center the SVG vertically using Flexbox
+  openButton.style.display = "flex";
+  openButton.style.alignItems = "center";
+  openButton.style.justifyContent = "center";
+  openButton.style.border = "none";
+  openButton.style.color = "white";
+  openButton.style.cursor = "pointer";
+  openButton.style.backgroundImage = "linear-gradient(to right, purple, blue)";
+
 
   tool.appendChild(openButton);
   document.body.appendChild(tool);
@@ -358,12 +379,14 @@ export default async function annotate(app_instance, templateId, serviceId,email
   closeButton.innerHTML = "Close";
   closeButton.style.marginLeft = "auto";
   closeButton.style.width = "50%";
+  closeButton.style.cursor = "pointer";
 
   const downloadButton = document.createElement("button");
   downloadButton.id = "download";
   downloadButton.innerHTML = "Download";
   downloadButton.style.marginRight = "auto";
   downloadButton.style.width = "50%";
+  downloadButton.style.cursor = "pointer";
   downloadButton.onclick = () => {
     downloadImage(img.src, "screenshot.png");
   };
@@ -372,6 +395,7 @@ export default async function annotate(app_instance, templateId, serviceId,email
   emailButton.id = "emailButton";
   emailButton.innerHTML = "Email";
   emailButton.style.marginRight = "left";
+  emailButton.style.cursor = "pointer";
   emailButton.style.width = "50%";
   emailButton.onclick = () => {
     emailDiv.style.display = "flex";
@@ -384,15 +408,18 @@ export default async function annotate(app_instance, templateId, serviceId,email
       })
       .catch((e) => {
         annotatorModal.style.display = "none";
+        tool.style.visibility = "visible";
       });
   };
 
   openButton.onclick = () => {
     openImage();
+    tool.style.visibility = "hidden";
   };
 
   closeButton.onclick = () => {
     annotatorModal.style.display = "none";
+    tool.style.visibility = "visible";
   };
 
   buttonsDiv.appendChild(emailButton);

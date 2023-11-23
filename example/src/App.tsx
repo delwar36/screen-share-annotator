@@ -5,6 +5,7 @@ import html2canvas from "html2canvas";
 import { app } from "./utils/firebase";
 //@ts-ignore
 import annotate from "screen-share-annotator";
+// import annotate from "./packages/annotate";
 
 function App() {
   const ref = useRef(null);
