@@ -107,7 +107,7 @@ async function getRecipients(database) {
   return recipientsDiv;
 }
 
-async function sendEmail(storage, templateId, serviceId) {
+async function sendEmail(storage, templateId, serviceId,emailJsApiKey) {
   const recipient = document.getElementById("recipient").value;
   const sub = document.getElementById("subject").value;
   const msg = document.getElementById("message").value;
@@ -157,7 +157,7 @@ async function sendEmail(storage, templateId, serviceId) {
     });
 }
 
-export default async function annotate(app_instance, templateId, serviceId) {
+export default async function annotate(app_instance, templateId, serviceId,emailJsApiKey) {
   const storage = getStorage(app_instance);
   const database = getDatabase(app_instance);
 
@@ -296,7 +296,7 @@ export default async function annotate(app_instance, templateId, serviceId) {
   sendEmailButton.innerHTML = "Send Email";
   sendEmailButton.style.width = "30%";
   sendEmailButton.onclick = async () => {
-    sendEmail(storage, templateId, serviceId);
+    sendEmail(storage, templateId, serviceId,emailJsApiKey);
   };
 
   const recipeintsDiv = await getRecipients(database);
