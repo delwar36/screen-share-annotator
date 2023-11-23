@@ -15,6 +15,8 @@
   "author": "Md Delwar Hossain",
   "license": "MIT",
   "dependencies": {
+    "@emailjs/browser": "^3.11.0",
+    "firebase": "^10.6.0",
     "markerjs2": "^2.31.2"
   }
 }

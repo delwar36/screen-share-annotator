@@ -1,5 +1,11 @@
-import zIndex from "@mui/material/styles/zIndex";
-import html2canvas from "html2canvas";
+import emailjs from "@emailjs/browser";
+import {
+  getStorage,
+  ref as firebaseRef,
+  uploadString,
+  getDownloadURL,
+} from "firebase/storage";
+import { getDatabase, ref, child, get, set } from "firebase/database";
 
 import { MarkerArea } from "markerjs2";
 
@@ -26,7 +32,6 @@ const takeScreenShot = async (img) => {
   img.src = image;
 
   return image;
-  // return frame;
 };
 
 function showMarkerArea(target) {
@@ -34,12 +39,9 @@ function showMarkerArea(target) {
   console.log(markerArea);
   markerArea.settings.displayMode = "popup";
   markerArea.uiStyleSettings.zIndex = "1000";
-  // markerArea.pos;a
 
   markerArea.uiStyleSettings.backgroundColor = "rgba(0,0,0,0.5)";
-  // markerArea.uiStyleSettings
   markerArea.addEventListener("render", (event) => {
-    // console.log(event);
     target.src = event.dataUrl;
   });
   markerArea.show();
@@ -55,9 +57,110 @@ function downloadImage(byteString, fileName) {
   URL.revokeObjectURL(byteString);
 }
 
-export default function annotate() {
-  //@ts-ignore
-  // const dom = document.body;
+async function getRecipients(database) {
+  const dbRef = ref(database);
+
+  const snapshot = await get(child(dbRef, `emails`));
+
+  const recipientsDiv = document.createElement("div");
+
+  recipientsDiv.id = "recipientsDiv";
+  recipientsDiv.style.display = "flex";
+  recipientsDiv.style.flexDirection = "column";
+  recipientsDiv.style.justifyContent = "center";
+  recipientsDiv.style.marginTop = "10px";
+  recipientsDiv.style.marginBottom = "10px";
+  recipientsDiv.style.padding = "10px";
+  recipientsDiv.style.border = "1px solid #ccc";
+  recipientsDiv.style.borderRadius = "5px";
+  recipientsDiv.style.rowGap = "10px";
+  recipientsDiv.style.maxHeight = "200px";
+  recipientsDiv.style.overflowY = "scroll";
+  const recipientsList = document.createElement("ul");
+  recipientsList.id = "recipientList";
+
+  if (snapshot.exists()) {
+    const recipients = snapshot.val();
+
+    recipients.forEach((recipient) => {
+      const listItem = document.createElement("div");
+      listItem.style.textAlign = "left";
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.id = "recipient";
+      checkbox.onclick = (e) => {
+        console.log(e.target.checked);
+      };
+      const label = document.createElement("label");
+      label.htmlFor = recipient;
+      label.innerHTML = recipient;
+
+      listItem.appendChild(checkbox);
+      listItem.appendChild(label);
+      recipientsList.appendChild(listItem);
+    });
+  } else {
+    console.log("No data available");
+  }
+  recipientsDiv.appendChild(recipientsList);
+  return recipientsDiv;
+}
+
+async function sendEmail(storage, templateId, serviceId) {
+  const recipient = document.getElementById("recipient").value;
+  const sub = document.getElementById("subject").value;
+  const msg = document.getElementById("message").value;
+  const img = document.getElementById("annotate_preview");
+
+  let recipients = document.getElementById("recipientList").children;
+
+  recipients = Array.from(recipients);
+
+  const imageId = Date.now().toString();
+
+  const storageRef = firebaseRef(storage, "images/" + imageId + ".jpg");
+
+  document.getElementById("sendEmail").innerHTML = "Sending";
+
+  const snapshot = await uploadString(storageRef, img.src, "data_url");
+  const url = await getDownloadURL(snapshot.ref);
+
+  const promises = recipients.map((recipient) => {
+    if (recipient.children.item(0).checked) {
+      const email = recipient.children.item(1).innerHTML;
+      return emailjs.send(
+        serviceId,
+        templateId,
+        {
+          to_email: email,
+          subject: sub,
+          message: msg,
+          src: url,
+        },
+        emailJsApiKey
+      );
+    }
+  });
+
+  Promise.all(promises)
+    .then((res) => {
+      console.log(res);
+      document.getElementById("sendEmail").innerHTML = "Send Mail";
+      alert("Email has been sent");
+      document.getElementById("emailDiv").style.display = "none";
+      document.getElementById("annotator").style.display = "none";
+    })
+    .catch((e) => {
+      alert("There was an error sending the mail");
+      console.log(e);
+    });
+}
+
+export default async function annotate(app_instance, templateId, serviceId) {
+  const storage = getStorage(app_instance);
+  const database = getDatabase(app_instance);
+
   const root = document.getElementById("root");
 
   const preMain = document.getElementById("main");
@@ -68,10 +171,6 @@ export default function annotate() {
 
   var tool = document.createElement("div");
 
-  // Set its inner HTML
-  // tool.innerHTML = "I'm a sticky block!";
-
-  // Set the CSS properties
   tool.style.position = "fixed";
   tool.style.top = "0px";
   tool.style.left = "0px";
@@ -80,8 +179,6 @@ export default function annotate() {
   tool.style.backgroundColor = "#f9f9f9";
   tool.style.padding = "10px";
   tool.style.zIndex = "1000";
-
-  // document.body.appendChild(tool);
 
   const annotatorModal = document.createElement("div");
 
@@ -115,38 +212,69 @@ export default function annotate() {
   annotator.style.zIndex = "1000";
 
   const emailDiv = document.createElement("div");
-  emailDiv.id = "email";
+  emailDiv.id = "emailDiv";
   emailDiv.style.marginTop = "20px";
   emailDiv.style.display = "none";
   emailDiv.style.flexDirection = "column";
   emailDiv.style.justifyContent = "center";
+  emailDiv.style.width = "100%";
 
   const recipient = document.createElement("input");
   recipient.type = "email";
-  recipient.placeholder = "Recipient";
+  recipient.id = "recipient";
+  recipient.placeholder = "Add a new recipient";
   recipient.style.marginBottom = "10px";
   recipient.style.padding = "10px";
   recipient.style.borderRadius = "5px";
   recipient.style.border = "1px solid #ccc";
 
-  // recipient.onchange = (e) => {
-  //   const val = e.target.value;
-  //   const emails = val.split(" ");
-  //   emails.forEach((email) => {
-  //     // Assuming recipient is an input element for the email
-  //     const badge = document.createElement("span");
-  //     badge.textContent = email; // Set the text for the badge
-  //     badge.style.backgroundColor = "green"; // Set the background color for the badge
-  //     badge.style.color = "white"; // Set the text color for the badge
-  //     badge.style.borderRadius = "5px"; // Make the badge round
-  //     badge.style.padding = "2px 5px"; // Add some padding to the badge
-  //     badge.style.marginLeft = "10px"; // Add some space between the email and the badge
+  const addRecipientButton = document.createElement("button");
+  addRecipientButton.id = "addRecipient";
+  addRecipientButton.innerHTML = "Add New Recipient";
+  addRecipientButton.style.width = "30%";
+  addRecipientButton.onclick = async () => {
+    const recipient = document.getElementById("recipient").value;
+    if (!recipient) {
+      alert("Please enter a valid email address");
+      return;
+    }
+    let list = document.getElementById("recipientList");
 
-  //     recipient.parentNode.insertBefore(badge, recipient.nextSibling);
-  //   });
-  // };
+    let listArr = Array.from(list.children);
+    listArr = listArr.map((item) => item.children.item(1).innerHTML);
+    if (listArr.includes(recipient)) {
+      alert("Recipient already exists");
+      return;
+    }
+
+    const dbRef = ref(database);
+
+    addRecipientButton.innerHTML = "Adding";
+    await set(child(dbRef, `emails`), [...listArr, recipient]);
+
+    const listItem = document.createElement("div");
+    listItem.style.textAlign = "left";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.id = "recipient";
+    checkbox.onclick = (e) => {
+      console.log(e.target.checked);
+    };
+    const label = document.createElement("label");
+    label.htmlFor = recipient;
+    label.innerHTML = recipient;
+
+    listItem.appendChild(checkbox);
+    listItem.appendChild(label);
+    list.appendChild(listItem);
+
+    document.getElementById("recipient").value = "";
+    addRecipientButton.innerHTML = "Add New Recipient";
+  };
 
   const subject = document.createElement("input");
+  subject.id = "subject";
   subject.type = "text";
   subject.placeholder = "Subject";
   subject.style.marginBottom = "10px";
@@ -155,6 +283,7 @@ export default function annotate() {
   subject.style.border = "1px solid #ccc";
 
   const message = document.createElement("textarea");
+  message.id = "message";
   message.placeholder = "Message";
   message.style.marginBottom = "10px";
   message.style.padding = "10px";
@@ -163,30 +292,40 @@ export default function annotate() {
   message.style.height = "200px";
 
   const sendEmailButton = document.createElement("button");
+  sendEmailButton.id = "sendEmail";
   sendEmailButton.innerHTML = "Send Email";
-  sendEmailButton.style.marginRight = "auto";
   sendEmailButton.style.width = "30%";
-  sendEmailButton.style.marginTop = "10px";
-  sendEmailButton.onclick = () => {
-    const email = recipient.value;
-    const sub = subject.value;
-    const msg = message.value;
-    const img = document.getElementById("annotate_preview");
-
-    const data = {
-      email,
-      sub,
-      msg,
-      img,
-    };
-
-    console.log(data);
+  sendEmailButton.onclick = async () => {
+    sendEmail(storage, templateId, serviceId);
   };
 
+  const recipeintsDiv = await getRecipients(database);
   emailDiv.appendChild(recipient);
+  emailDiv.appendChild(addRecipientButton);
+  emailDiv.appendChild(recipeintsDiv);
+
   emailDiv.appendChild(subject);
   emailDiv.appendChild(message);
-  emailDiv.appendChild(sendEmailButton);
+
+  const emailButtonDiv = document.createElement("div");
+  emailButtonDiv.style.display = "flex";
+  emailButtonDiv.style.flexDirection = "row";
+  emailButtonDiv.style.gap = "10px";
+  emailButtonDiv.style.marginTop = "10px";
+
+  const closeEmailDivButton = document.createElement("button");
+  closeEmailDivButton.id = "closeEmailDivButton";
+  closeEmailDivButton.innerHTML = "Close";
+  closeEmailDivButton.style.marginRight = "auto";
+  closeEmailDivButton.style.width = "30%";
+  closeEmailDivButton.onclick = () => {
+    emailDiv.style.display = "none";
+  };
+
+  emailButtonDiv.appendChild(sendEmailButton);
+  emailButtonDiv.appendChild(closeEmailDivButton);
+
+  emailDiv.appendChild(emailButtonDiv);
 
   const buttonsDiv = document.createElement("div");
   buttonsDiv.style.display = "flex";
@@ -239,9 +378,13 @@ export default function annotate() {
   };
 
   const openImage = () => {
-    takeScreenShot(img).then(() => {
-      annotatorModal.style.display = "flex";
-    });
+    takeScreenShot(img)
+      .then(() => {
+        annotatorModal.style.display = "flex";
+      })
+      .catch((e) => {
+        annotatorModal.style.display = "none";
+      });
   };
 
   openButton.onclick = () => {
