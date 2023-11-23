@@ -1,5 +1,5 @@
 {
-  "name": "ss-annotator",
+  "name": "screen-share",
   "version": "1.0.0",
   "description": "Take screenshots, annotate and share via email.",
   "main": "index.js",
