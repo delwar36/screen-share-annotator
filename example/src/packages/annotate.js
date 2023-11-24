@@ -36,15 +36,23 @@ const takeScreenShot = async (img) => {
 
 function showMarkerArea(target) {
   const markerArea = new MarkerArea(target);
-  console.log(markerArea);
   markerArea.settings.displayMode = "popup";
   markerArea.uiStyleSettings.zIndex = "1000";
+  markerArea.uiStyleSettings.logoPosition = "right";
 
+ 
   markerArea.uiStyleSettings.backgroundColor = "rgba(0,0,0,0.5)";
   markerArea.addEventListener("render", (event) => {
     target.src = event.dataUrl;
   });
   markerArea.show();
+  var svgElements = document.getElementsByTagName("a");
+  if (svgElements.length > 0) {
+    for (let i = 0; i < svgElements.length; i++) {
+      if(svgElements[i].href.includes("markerjs"))
+      svgElements[i].style.display = "none";
+    }
+  }
 }
 
 function downloadImage(byteString, fileName) {
